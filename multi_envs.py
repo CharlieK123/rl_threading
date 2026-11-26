@@ -5,7 +5,7 @@ import multiprocessing as mp
 import numpy as np
 
 SEED = 67
-ROLLOUT_STEPS = 500
+ROLLOUT_STEPS = 10
 N_ENVS = 6
 ACT_SPACE = 2
 OBS_DIM = 4
@@ -21,6 +21,10 @@ class GlobalRolloutBuffer:
         self.log_probs = torch.zeros((steps, n_envs), dtype=torch.float32)
 
         self.done = torch.zeros((steps, n_envs), dtype=torch.int8)  # -1 truncated, 1 terminated, 0 neither, 2 both
+
+        self.steps = steps
+        self.dim = obs_dim
+        self.n_envs = n_envs
 
     def add(self, step, s, n, v, r, a, l, d):
         self.states[step]= s

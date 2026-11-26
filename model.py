@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import math
+from torch.distributions import Categorical
 
 class FFN(nn.Module):
     def __init__(self, in_dim, out_dim, hidden_dim, num_hidden, actor=True, gain=math.sqrt(2)):
@@ -38,3 +39,29 @@ class FFN(nn.Module):
 
     def forward(self, x):
         return self.network(x)
+
+
+class Actor(nn.Module):
+    def __init__(self, in_dim, out_dim, hidden_dim, num_hidden):
+        super().__init__()
+
+        self.policy = FFN(in_dim, out_dim, hidden_dim, num_hidden, actor=True)
+
+    def get_action(self, state):
+        logits = self.policy(state)
+        dist = Categorical(logits=logits)
+
+        action = dist.sample()
+        log_prob = dist.log_prob(action)
+
+        return action, log_prob  # return action tensor and respective log prob
+
+
+class Critic(nn.Module):
+    def __init__(self, in_dim, out_dim, hidden_dim, num_hidden):
+        super().__init__()
+
+        self.value = FFN(in_dim, out_dim, hidden_dim, num_hidden, actor=False)
+
+    def get_value(self, state):
+        return self.value(state).squeeze(-1)  # return predicted value scalar
